@@ -1,171 +1,200 @@
-# sanj
+<div align="center">
 
-[![CI](https://github.com/whoisGray/sanj/actions/workflows/ci.yml/badge.svg)](https://github.com/whoisGray/sanj/actions/workflows/ci.yml)
+<img src="docs/assets/sanj-banner.svg" alt="sanj — VPN server checks from your terminal" width="100%">
 
-بررسی زنده بودن سرورهای VPN. فهرست NordVPN را از API رسمی می‌گیرد و فقط پروتکلی را که انتخاب کنید آزمایش می‌کند. پیش‌فرض IKEv2 است. برای فهرست دامنه یا IP خودتان هم یک حالت جدا دارد.
+# sanj · سنج
 
-فقط سرورهایی را اسکن کنید که اجازهٔ بررسی‌شان را دارید.
+**Check VPN server responses. Choose your protocol. Keep the results.**
 
-## دانلود
+[English](README.md) · [فارسی](README.fa.md)
 
-آخرین نسخه را با یک دستور نصب کنید. الان آخرین انتشار [`v1.0.1`](https://github.com/WhoisGray/sanj/releases/tag/v1.0.1) است. دستور خودش سیستم و معماری را می‌فهمد و همان بسته را با چک‌سام SHA256 می‌گذارد روی PATH.
+[![CI](https://github.com/WhoisGray/sanj/actions/workflows/ci.yml/badge.svg)](https://github.com/WhoisGray/sanj/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/WhoisGray/sanj?color=38bdf8)](https://github.com/WhoisGray/sanj/releases/latest)
+[![Go](https://img.shields.io/badge/Go-1.22%2B-00ADD8?logo=go&logoColor=white)](go.mod)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-34d399)](#contribute)
 
-macOS و Linux. همین یک خط نصب می‌کند، و با `-update` همان خط را برای آخرین نسخه دوباره می‌زند:
+[Get started](#quick-start) · [Usage](#usage) · [Provider roadmap](#provider-roadmap) · [Contribute](#contribute)
+
+</div>
+
+---
+
+**sanj** is a Go command-line tool for checking VPN server responses. Discover servers through NordVPN's official API or bring your own host list, run protocol checks, and export the results as JSON, CSV, and Excel.
+
+> Checks show what responds from your current network. They do not guarantee successful VPN login, a working tunnel, or browsing performance. Only scan servers you have permission to check.
+
+## Why sanj?
+
+- **Choose the checks:** IKEv2 by default; WireGuard, OpenVPN, combinations, or a full NordVPN scan.
+- **Narrow the search:** filter NordVPN servers by country and load, then limit how many to check.
+- **Bring your own list:** use domain/IPv4 text files, supported JSON catalogs, or previous results.
+- **Keep useful reports:** JSON for automation, CSV for analysis, XLSX for sharing.
+- **Run across platforms:** macOS, Linux, and Windows releases for amd64 and arm64.
+- **Reuse discovery:** six-hour NordVPN cache with an explicit refresh option.
+
+## Quick start
+
+### 1. Install
+
+**macOS / Linux**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/WhoisGray/sanj/refs/heads/main/install.sh | sh -s -- -update
+curl -fsSL https://raw.githubusercontent.com/WhoisGray/sanj/refs/heads/main/install.sh | sh
 ```
 
-Windows در PowerShell. دوباره اجرا کردنش یعنی به‌روزرسانی:
+**Windows · PowerShell**
 
 ```powershell
 irm https://raw.githubusercontent.com/WhoisGray/sanj/refs/heads/main/install.ps1 | iex
 ```
 
-بعد از اینکه این کد داخل Release باشد، روی هر سه سیستم:
+The installers select your platform and architecture and verify the archive against the release SHA256 checksums. If the installer asks you to add a directory to `PATH`, follow its printed instruction and reopen your terminal. You can inspect [install.sh](install.sh) or [install.ps1](install.ps1) before running it.
 
-```bash
-sanj -update
-```
+Prefer a manual install? Download an archive and `checksums.txt` from [Releases](https://github.com/WhoisGray/sanj/releases/latest).
 
-نسخهٔ منتشرشدهٔ `v1.0.1` پرچم `-update` را ندارد. تا تگ بعدی، همان دستور نصب را دوباره اجرا کنید.
-
-فایل هر سیستم از [Releases](https://github.com/whoisGray/sanj/releases) هم جداگانه هست. با پوش کردن یک تگ مثل `v1.0.1` ساخته می‌شود. کنار فایل‌ها `checksums.txt` هست.
-
-| سیستم | معماری | فایل |
+| System | amd64 / Intel | arm64 / Apple silicon |
 | --- | --- | --- |
-| macOS اپل سیلیکون | arm64 | `sanj_1.0.1_darwin_arm64.tar.gz` |
-| macOS اینتل | amd64 | `sanj_1.0.1_darwin_amd64.tar.gz` |
-| Linux | amd64 | `sanj_1.0.1_linux_amd64.tar.gz` |
-| Linux | arm64 | `sanj_1.0.1_linux_arm64.tar.gz` |
-| Windows | amd64 | `sanj_1.0.1_windows_amd64.zip` |
-| Windows | arm64 | `sanj_1.0.1_windows_arm64.zip` |
+| macOS | `darwin_amd64.tar.gz` | `darwin_arm64.tar.gz` |
+| Linux | `linux_amd64.tar.gz` | `linux_arm64.tar.gz` |
+| Windows | `windows_amd64.zip` | `windows_arm64.zip` |
 
-`1.0.1` همان شمارهٔ تگ است، بدون `v`.
+Archive names begin with `sanj_<version>_`. Verify the downloaded archive before extraction: use `shasum -a 256 <archive>` on macOS, `sha256sum <archive>` on Linux, or `Get-FileHash <archive> -Algorithm SHA256` in PowerShell, and compare with the matching line in `checksums.txt`. Extract the binary into a directory on your `PATH`; on Unix, make it executable with `chmod +x sanj`. macOS binaries are unsigned; if Gatekeeper blocks a verified download, remove its quarantine attribute with `xattr -d com.apple.quarantine /path/to/sanj`.
 
-### macOS و Linux
-
-```bash
-tar -xzf sanj_1.0.1_darwin_arm64.tar.gz
-sudo mv sanj /usr/local/bin/
-sanj -version
-```
-
-بایینری امضا نشده است. اگر Gatekeeper روی مک جلوی اجرا را گرفت:
-
-```bash
-xattr -d com.apple.quarantine /usr/local/bin/sanj
-```
-
-جمع چک:
-
-```bash
-shasum -a 256 -c checksums.txt
-```
-
-روی Linux به جای `shasum` از `sha256sum -c checksums.txt` استفاده کنید.
-
-### Windows
-
-zip را باز کنید و در PowerShell:
-
-```powershell
-.\sanj.exe -version
-Get-FileHash .\sanj_1.0.1_windows_amd64.zip -Algorithm SHA256
-```
-
-هش را با خط همان فایل در `checksums.txt` مقایسه کنید.
-
-### نصب با Go
-
-Go 1.22 یا جدیدتر:
+**With Go 1.22+**
 
 ```bash
 go install github.com/whoisGray/sanj@latest
 ```
 
-## استفاده
+### 2. Run a focused check
 
 ```bash
-sanj -nord                         # فقط IKEv2
-sanj -nord -proto wire             # فقط WireGuard
-sanj -nord -proto ikev2,wire
-sanj -nord -proto full             # همه‌ی پروتکل‌ها
-sanj -nord -country se -limit 40 -c 64
+sanj -version
+sanj -nord -country se -limit 10
+```
+
+This checks IKEv2 on up to ten Swedish NordVPN servers. In PowerShell, use `.\sanj.exe` if the executable is in your current folder rather than on `PATH`.
+
+### 3. Open the reports
+
+NordVPN mode writes `nord-results.json`, `nord-results.csv`, and `nord-results.xlsx` in the current directory. Custom-file mode uses the `sanj-results` prefix. Override paths with `-json`, `-csv`, and `-xlsx`.
+
+## Usage
+
+### NordVPN discovery and protocol selection
+
+```bash
+sanj -nord                              # IKEv2 only
+sanj -nord -proto wire                   # WireGuard only
+sanj -nord -proto openvpn                # OpenVPN UDP + TCP
+sanj -nord -proto ikev2,wire              # Selected protocols
+sanj -nord -proto full                   # All checks + firewall diagnostics
+sanj -nord -country se,de -limit 40 -c 32
+sanj -nord -refresh                      # Bypass the cached server list
+```
+
+`-proto` applies to NordVPN mode. It accepts `ikev2`, `wire` (aliases: `wg`, `wireguard`), `openvpn`, comma-separated combinations, or `full`. Servers without any selected protocol are filtered out. Full mode also probes UDP/53 and TCP/80 to help identify unusual firewall responses.
+
+### Your own server list
+
+Create `servers.txt` with one authorized domain or IPv4 address per line. Blank lines and `#` comments are supported.
+
+```bash
+sanj -file servers.txt
 sanj -file servers.json
-sanj -file server.txt              # هر خط یک دامنه یا IPv4
+sanj -file servers.txt -phase 1           # DNS discovery only
+sanj -file sanj-results.json -phase 2     # Probe saved addresses
 ```
 
-`-proto` این‌ها را می‌پذیرد: `ikev2`، `wire` (همان `wg` و `wireguard`)، `openvpn`، فهرست با ویرگول، یا `full`.
+Custom-file mode uses its own discovery and probing flow; the NordVPN `-proto` selector does not configure it. See [main.go](main.go) for supported JSON catalog and saved-result formats.
 
-`full` علاوه بر WireGuard و OpenVPN و IKEv2، پورت‌های udp/53 و tcp/80 را هم چک می‌کند تا پاسخ عجیب فایروال در جدول بیاید. اسکن تک‌پروتکل این دو پورت اضافه را نمی‌زند.
+### Read the results
 
-سروری که پروتکل انتخاب‌شده را ندارد از فهرست حذف می‌شود.
-
-خروجی Nord این سه فایل است:
-
-- `nord-results.json`
-- `nord-results.csv`
-- `nord-results.xlsx`
-
-حالت فایل، خروجی را در `sanj-results.json` و `sanj-results.csv` و `sanj-results.xlsx` می‌نویسد.
-
-کش فهرست Nord در `~/.cache/nordike` است و ۶ ساعت می‌ماند. `-refresh` کش را دور می‌زند.
-
-اگر VPN روشن باشد و DNS فقط آدرس خصوصی (مثل `10.10`) برگرداند، فاز کشف متوقف می‌شود. VPN را خاموش کنید، یا با `-allow-poisoned` ادامه دهید.
-
-### معنی چند ستون
-
-| مقدار | معنی |
+| Value | Meaning |
 | --- | --- |
-| `real` | پاسخ شبیه سرور واقعی همان پروتکل بود |
-| `p1` | فقط فاز اول IKEv2 جواب داد |
-| `silent` | پاسخی نیامد |
-| `fresh=yes` | حداقل یک پروتکل تأیید شد |
-| `unproven` | جواب قابل اتکا نبود |
+| `real` | Response matched the expected protocol checks |
+| `p1` | Only the first IKEv2 phase succeeded |
+| `silent` | No response was received |
+| `fresh=yes` | The scorer accepted protocol evidence; this can include IKEv2 phase-one-only evidence |
+| `unproven` | No conclusive protocol evidence |
 
-## پرچم‌ها
+A silent server may be filtered, unreachable, or simply slow. Treat a result as evidence from one network at one point in time.
 
-| پرچم | پیش‌فرض | کار |
+### Cache and DNS troubleshooting
+
+NordVPN discovery is cached under `~/.cache/nordike` for six hours by default. Use `-refresh` to fetch again or `-ttl` to change the lifetime.
+
+In custom-file discovery, if DNS returns only private addresses, sanj stops by default. Check your VPN and resolver settings before retrying. `-allow-poisoned` overrides this safeguard when that behavior is intentional.
+
+## Options
+
+| Flag | Default | Purpose |
 | --- | --- | --- |
-| `-nord` | خاموش | گرفتن فهرست NordVPN و آزمایش |
-| `-proto` | `ikev2` | پروتکل آزمایش |
-| `-country` | همه | کد یا نام کشور، با ویرگول |
-| `-limit` | `0` | سقف تعداد؛ صفر یعنی همه. کم‌بارترین‌ها اول |
-| `-load` | `100` | رد کردن سرور شلوغ‌تر از این |
-| `-offline` | خاموش | سرورهای غیرآنلاین هم بیایند |
-| `-refresh` | خاموش | دانلود دوبارهٔ فهرست |
-| `-ttl` | `6h` | عمر کش |
-| `-c` | `80` | تعداد کار همزمان. در `-nord` اگر این را ندهید ۳۲ است |
-| `-ike-timeout` | `1s` | مهلت IKEv2 |
-| `-tcp-timeout` | `1200ms` | مهلت TCP. در `-nord` اگر ندهید `1s` است |
-| `-ike-user` | بسته به حالت | هویت کاربر در IKE_AUTH |
-| `-ike-id` | بسته به حالت | شناسهٔ سمت سرور در IKE_AUTH |
-| `-file` | | JSON کاتالوگ، فایل متنی، یا نتیجهٔ قبلی |
-| `-phase` | | `1` کشف DNS، `2` آزمایش، `all` هر دو |
-| `-dns` | `1.1.1.1:53` | سرور DNS فاز کشف |
-| `-allow-poisoned` | خاموش | ادامه با وجود IP خصوصی |
-| `-json` `-csv` `-xlsx` | بسته به حالت | مسیر خروجی |
-| `-version` | | چاپ نسخه و خروج |
-| `-update` | | جایگزینی همین برنامه با آخرین Release گیت‌هاب |
+| `-nord` | `false` | Discover and check NordVPN servers |
+| `-proto` | `ikev2` | NordVPN protocol selection |
+| `-country` | All | Comma-separated country codes or names |
+| `-limit` | `0` | NordVPN server limit; zero means all, lowest load first |
+| `-load` | `100` | Maximum NordVPN server load |
+| `-offline` | `false` | Include NordVPN servers not marked online |
+| `-refresh` | `false` | Download the NordVPN catalog again |
+| `-ttl` | `6h` | NordVPN cache lifetime |
+| `-c` | `80`; NordVPN: `32` | Concurrent workers |
+| `-ike-timeout` | `1s` | IKEv2 timeout |
+| `-tcp-timeout` | `1200ms`; NordVPN: `1s` | TCP timeout |
+| `-ike-user` | Mode-dependent | IKE_AUTH user identity |
+| `-ike-id` | Mode-dependent | IKE_AUTH remote identity |
+| `-file` | — | Input catalog, host list, or saved results |
+| `-phase` | Automatic | `1` discovery, `2` probing, `all` both |
+| `-dns` | `1.1.1.1:53` | Discovery DNS resolver |
+| `-allow-poisoned` | `false` | Continue despite private DNS answers |
+| `-json`, `-csv`, `-xlsx` | Mode-dependent | Report paths |
+| `-version` | — | Print version and exit |
+| `-update` | — | Replace this binary with the latest GitHub release |
 
-در `-nord` اگر `-ike-user` و `-ike-id` را ندهید، مقدارشان `health@nordvpn.com` و `nordvpn.com` است. در حالت فایل، `this is health check` و `ironnodes.com`.
+IKE identities default to `health@nordvpn.com` / `nordvpn.com` in NordVPN mode, and `this is health check` / `ironnodes.com` in file mode.
 
-## انتشار
+To update, run `sanj -update`. Older binaries such as v1.0.1 do not recognize this flag; rerun the installer instead.
+
+## Provider roadmap
+
+**NordVPN is the only built-in discovery provider today.** Custom lists are supported separately. The items below are open contribution ideas, not implemented integrations or promised releases.
+
+- [x] NordVPN — official API discovery, filters, cache, and protocol checks.
+- [x] Custom domain / IPv4 lists and supported JSON input.
+- [ ] VPN Unlimited — investigate an official or documented server source and supported protocols.
+- [ ] Windscribe — investigate server discovery, account requirements, and protocol metadata.
+- [ ] VyprVPN — investigate server discovery and protocol coverage.
+- [ ] Proton VPN — investigate a documented catalog or configuration import.
+- [ ] Mullvad — investigate relay discovery and protocol metadata.
+- [ ] Surfshark — investigate a documented server source or configuration import.
+- [ ] Shared provider interface — separate discovery, metadata, cache, and probing.
+- [ ] Provider fixtures and tests — cover parsing, failures, and unsupported protocols.
+- [ ] Provider documentation — setup, limitations, examples, and English/Persian updates.
+
+Have another provider in mind? [Propose an integration](https://github.com/WhoisGray/sanj/issues/new?title=Provider%20request%3A%20) with the provider name, a documented server source, available protocols, and any account requirements.
+
+## Contribute
+
+**Help make sanj useful on more networks.** Provider research, Go code, tests, documentation, Persian translations, and reproducible bug reports are welcome.
+
+1. Open an issue to discuss a provider or pick an existing task; mention what you plan to work on.
+2. Fork the repository and create a focused branch.
+3. For a provider, document the server source, authentication needs, rate limits, supported protocols, and limitations. Never commit credentials or private keys.
+4. Add fixture-based parsing tests and error cases; reuse the current probe code where appropriate. Mark unsupported checks clearly.
+5. Update both READMEs, run the checks below, and open a pull request with sample output and validation notes.
+
+Useful starting points: [nord.go](nord.go) for discovery and filtering, [main.go](main.go) for CLI/input handling, and [ike.go](ike.go), [wg.go](wg.go), [ovpn.go](ovpn.go) for protocol checks. A shared provider interface is still a roadmap item.
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-workflow به نام Release اول تست را اجرا می‌کند، بعد شش بسته را می‌سازد و روی صفحهٔ Releases می‌گذارد. `sanj -version` همان تگ را چاپ می‌کند. آخرین تگِ منتشرشده `v1.0.1` است.
-
-هر push و هر pull request هم با workflow به نام CI تست و کامپایل هر شش سیستم را می‌گیرد.
-
-## ساخت محلی
-
-```bash
+git clone https://github.com/WhoisGray/sanj.git
+cd sanj
 go test ./...
 go build -o sanj .
 ./sanj -version
 ```
+
+CI tests and cross-compiles six OS/architecture targets. Version tags trigger the release workflow, which tests, packages binaries, and publishes SHA256 checksums.
+
+---
+
+If sanj helps you, **give it a star ⭐** and share your feedback. Every provider contribution makes the project more useful.
