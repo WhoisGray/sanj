@@ -2,7 +2,7 @@
 & {
   $ErrorActionPreference = 'Stop'
   $ProgressPreference = 'SilentlyContinue'
-  $repo = 'whoisGray/sanj'
+  $repo = 'WhoisGray/sanj'
 
   switch ($env:PROCESSOR_ARCHITECTURE) {
     'AMD64' { $arch = 'amd64' }

@@ -13,13 +13,13 @@
 macOS و Linux. همین یک خط نصب می‌کند، و با `-update` همان خط را برای آخرین نسخه دوباره می‌زند:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/whoisGray/sanj/main/install.sh | sh -s -- -update
+curl -fsSL https://raw.githubusercontent.com/WhoisGray/sanj/refs/heads/main/install.sh | sh -s -- -update
 ```
 
 Windows در PowerShell. دوباره اجرا کردنش یعنی به‌روزرسانی:
 
 ```powershell
-irm https://raw.githubusercontent.com/whoisGray/sanj/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/WhoisGray/sanj/refs/heads/main/install.ps1 | iex
 ```
 
 بعد از اینکه این کد داخل Release باشد، روی هر سه سیستم:

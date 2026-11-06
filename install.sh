@@ -2,7 +2,7 @@
 # Install the latest sanj release. -update does the same install again.
 set -eu
 
-repo="whoisGray/sanj"
+repo="WhoisGray/sanj"
 update=0
 for arg in "$@"; do
   case "$arg" in
@@ -19,7 +19,7 @@ case "$os" in
   linux) goos=linux ;;
   darwin) goos=darwin ;;
   *)
-    echo "use PowerShell on Windows: irm https://raw.githubusercontent.com/${repo}/main/install.ps1 | iex" >&2
+    echo "use PowerShell on Windows: irm https://raw.githubusercontent.com/${repo}/refs/heads/main/install.ps1 | iex" >&2
     exit 1
     ;;
 esac
@@ -44,7 +44,8 @@ json=$(curl -fsSL -A sanj-install -H "Accept: application/vnd.github+json" "$api
   echo "could not read the latest release" >&2
   exit 1
 }
-tag=$(printf '%s\n' "$json" | sed -n 's/^[[:space:]]*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | sed -n '1p')
+# GitHub returns the release on one line, so tag_name is not at the start of a line.
+tag=$(printf '%s\n' "$json" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | sed -n '1p')
 case "$tag" in
   v[0-9]*) ;;
   *)
@@ -67,8 +68,14 @@ base="https://github.com/${repo}/releases/download/${tag}"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-curl -fsSL -A sanj-install -o "$tmp/$asset" "$base/$asset"
-curl -fsSL -A sanj-install -o "$tmp/checksums.txt" "$base/checksums.txt"
+curl -fsSL -A sanj-install -o "$tmp/$asset" "$base/$asset" || {
+  echo "download failed: $base/$asset" >&2
+  exit 1
+}
+curl -fsSL -A sanj-install -o "$tmp/checksums.txt" "$base/checksums.txt" || {
+  echo "download failed: $base/checksums.txt" >&2
+  exit 1
+}
 
 if command -v sha256sum >/dev/null 2>&1; then
   got=$(sha256sum "$tmp/$asset" | awk '{print $1}')

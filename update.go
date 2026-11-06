@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	releaseAPI      = "https://api.github.com/repos/whoisGray/sanj/releases/latest"
+	releaseAPI      = "https://api.github.com/repos/WhoisGray/sanj/releases/latest"
 	maxReleaseBytes = 64 << 20
 )
 
