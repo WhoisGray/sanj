@@ -86,9 +86,17 @@ func main() {
 	maxLoad := flag.Int("load", 100, "Skip NordVPN servers above this load")
 	offline := flag.Bool("offline", false, "Also probe NordVPN servers that are not online")
 	showVersion := flag.Bool("version", false, "print version and exit")
+	doUpdate := flag.Bool("update", false, "replace this binary with the latest GitHub release")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
+		return
+	}
+	if *doUpdate {
+		if err := selfUpdate(); err != nil {
+			fmt.Fprintln(os.Stderr, "❌", err)
+			os.Exit(1)
+		}
 		return
 	}
 
@@ -202,6 +210,7 @@ func usage() {
 	fmt.Fprintln(os.Stderr, "  sanj -nord -refresh -c 256 -country se -limit 40")
 	fmt.Fprintln(os.Stderr, "  sanj -file servers.json")
 	fmt.Fprintln(os.Stderr, "  sanj -file server.txt          one domain or IPv4 per line")
+	fmt.Fprintln(os.Stderr, "  sanj -update                   install the latest release")
 	fmt.Fprintln(os.Stderr, "  sanj                         phase 2 on sanj-results.json")
 }
 

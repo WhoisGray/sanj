@@ -8,23 +8,45 @@
 
 ## دانلود
 
-فایل هر سیستم از [Releases](https://github.com/whoisGray/sanj/releases) می‌آید. با پوش کردن یک تگ مثل `v1.0.0` ساخته می‌شود. کنار فایل‌ها `checksums.txt` هست تا دانلود را با SHA256 چک کنید.
+آخرین نسخه را با یک دستور نصب کنید. الان آخرین انتشار [`v1.0.1`](https://github.com/WhoisGray/sanj/releases/tag/v1.0.1) است. دستور خودش سیستم و معماری را می‌فهمد و همان بسته را با چک‌سام SHA256 می‌گذارد روی PATH.
+
+macOS و Linux. همین یک خط نصب می‌کند، و با `-update` همان خط را برای آخرین نسخه دوباره می‌زند:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/whoisGray/sanj/main/install.sh | sh -s -- -update
+```
+
+Windows در PowerShell. دوباره اجرا کردنش یعنی به‌روزرسانی:
+
+```powershell
+irm https://raw.githubusercontent.com/whoisGray/sanj/main/install.ps1 | iex
+```
+
+بعد از اینکه این کد داخل Release باشد، روی هر سه سیستم:
+
+```bash
+sanj -update
+```
+
+نسخهٔ منتشرشدهٔ `v1.0.1` پرچم `-update` را ندارد. تا تگ بعدی، همان دستور نصب را دوباره اجرا کنید.
+
+فایل هر سیستم از [Releases](https://github.com/whoisGray/sanj/releases) هم جداگانه هست. با پوش کردن یک تگ مثل `v1.0.1` ساخته می‌شود. کنار فایل‌ها `checksums.txt` هست.
 
 | سیستم | معماری | فایل |
 | --- | --- | --- |
-| macOS اپل سیلیکون | arm64 | `sanj_1.0.0_darwin_arm64.tar.gz` |
-| macOS اینتل | amd64 | `sanj_1.0.0_darwin_amd64.tar.gz` |
-| Linux | amd64 | `sanj_1.0.0_linux_amd64.tar.gz` |
-| Linux | arm64 | `sanj_1.0.0_linux_arm64.tar.gz` |
-| Windows | amd64 | `sanj_1.0.0_windows_amd64.zip` |
-| Windows | arm64 | `sanj_1.0.0_windows_arm64.zip` |
+| macOS اپل سیلیکون | arm64 | `sanj_1.0.1_darwin_arm64.tar.gz` |
+| macOS اینتل | amd64 | `sanj_1.0.1_darwin_amd64.tar.gz` |
+| Linux | amd64 | `sanj_1.0.1_linux_amd64.tar.gz` |
+| Linux | arm64 | `sanj_1.0.1_linux_arm64.tar.gz` |
+| Windows | amd64 | `sanj_1.0.1_windows_amd64.zip` |
+| Windows | arm64 | `sanj_1.0.1_windows_arm64.zip` |
 
-`1.0.0` همان شمارهٔ تگ است، بدون `v`.
+`1.0.1` همان شمارهٔ تگ است، بدون `v`.
 
 ### macOS و Linux
 
 ```bash
-tar -xzf sanj_1.0.0_darwin_arm64.tar.gz
+tar -xzf sanj_1.0.1_darwin_arm64.tar.gz
 sudo mv sanj /usr/local/bin/
 sanj -version
 ```
@@ -49,7 +71,7 @@ zip را باز کنید و در PowerShell:
 
 ```powershell
 .\sanj.exe -version
-Get-FileHash .\sanj_1.0.0_windows_amd64.zip -Algorithm SHA256
+Get-FileHash .\sanj_1.0.1_windows_amd64.zip -Algorithm SHA256
 ```
 
 هش را با خط همان فایل در `checksums.txt` مقایسه کنید.
@@ -125,6 +147,7 @@ sanj -file server.txt              # هر خط یک دامنه یا IPv4
 | `-allow-poisoned` | خاموش | ادامه با وجود IP خصوصی |
 | `-json` `-csv` `-xlsx` | بسته به حالت | مسیر خروجی |
 | `-version` | | چاپ نسخه و خروج |
+| `-update` | | جایگزینی همین برنامه با آخرین Release گیت‌هاب |
 
 در `-nord` اگر `-ike-user` و `-ike-id` را ندهید، مقدارشان `health@nordvpn.com` و `nordvpn.com` است. در حالت فایل، `this is health check` و `ironnodes.com`.
 
@@ -135,7 +158,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-workflow به نام Release اول تست را اجرا می‌کند، بعد شش بسته را می‌سازد و روی صفحهٔ Releases می‌گذارد. `sanj -version` همان تگ را چاپ می‌کند.
+workflow به نام Release اول تست را اجرا می‌کند، بعد شش بسته را می‌سازد و روی صفحهٔ Releases می‌گذارد. `sanj -version` همان تگ را چاپ می‌کند. آخرین تگِ منتشرشده `v1.0.1` است.
 
 هر push و هر pull request هم با workflow به نام CI تست و کامپایل هر شش سیستم را می‌گیرد.
 
