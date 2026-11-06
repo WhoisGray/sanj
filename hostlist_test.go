@@ -91,6 +91,9 @@ func TestDiscoverLiteralIPv4SkipsDNS(t *testing.T) {
 
 func TestLoadServerTxt(t *testing.T) {
 	path := filepath.Join("..", "bin", "server.txt")
+	if _, err := os.Stat(path); err != nil {
+		t.Skip("local catalog not in the checkout:", path)
+	}
 	entries, probes, kind, err := loadInput(path)
 	if err != nil {
 		t.Fatal(err)
