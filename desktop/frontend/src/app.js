@@ -28,15 +28,29 @@ const state = {
 };
 
 // Check runtime environment
-const isWails = typeof window.go !== 'undefined' && typeof window.go.main !== 'undefined';
+function isWails() {
+  return typeof window.go !== 'undefined' && 
+         typeof window.go.main !== 'undefined' && 
+         typeof window.go.main.App !== 'undefined';
+}
+
+async function waitForWails(timeoutMs = 800) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (isWails() && window.runtime && window.runtime.EventsOn) return true;
+    await new Promise(r => setTimeout(r, 25));
+  }
+  return isWails();
+}
 
 // Initialization
 document.addEventListener('DOMContentLoaded', async () => {
   setupNavigation();
   setupDropzone();
+  await waitForWails();
+  setupEvents();
   await loadProviders();
   await loadServers();
-  setupEvents();
   renderMapNodes();
   logTerminal("vpnban CORE.V4 engine initialized. Ready for protocol auditing.");
 });
@@ -79,20 +93,26 @@ function switchView(viewName) {
 
 // Setup Wails runtime events or SSE
 function setupEvents() {
-  if (isWails && window.runtime) {
-    window.runtime.EventsOn('probe_event', onProbeEvent);
-  } else {
-    // SSE fallback for Web GUI mode
+  if (isWails() && window.runtime && window.runtime.EventsOn) {
     try {
-      const evtSource = new EventSource('/api/events');
-      evtSource.onmessage = (e) => {
-        try {
-          const ev = JSON.parse(e.data);
-          onProbeEvent(ev);
-        } catch (err) {}
-      };
-    } catch (e) {}
+      window.runtime.EventsOn('probe_event', onProbeEvent);
+      logTerminal("Core event stream attached.");
+      return;
+    } catch (e) {
+      console.warn("Wails EventsOn error:", e);
+    }
   }
+
+  // SSE fallback for Web GUI mode
+  try {
+    const evtSource = new EventSource('/api/events');
+    evtSource.onmessage = (e) => {
+      try {
+        const ev = JSON.parse(e.data);
+        onProbeEvent(ev);
+      } catch (err) {}
+    };
+  } catch (e) {}
 }
 
 function onProbeEvent(ev) {
@@ -160,7 +180,7 @@ function toggleTerminalPause() {
 async function loadProviders() {
   try {
     let providers = [];
-    if (isWails) {
+    if (isWails()) {
       providers = await window.go.main.App.GetProviders();
     } else {
       const resp = await fetch('/api/providers');
@@ -202,7 +222,7 @@ async function loadServers(refresh = false) {
 
   try {
     let servers = [];
-    if (isWails) {
+    if (isWails()) {
       servers = await window.go.main.App.FetchServers(state.selectedProvider, state.countryFilter, state.maxLoad, refresh);
     } else {
       const resp = await fetch(`/api/servers?provider=${encodeURIComponent(state.selectedProvider)}&country=${encodeURIComponent(state.countryFilter)}&maxLoad=${state.maxLoad}&refresh=${refresh}`);
@@ -474,11 +494,14 @@ async function executeProbing(targets) {
 
   state.isProbing = true;
   updateEngineState(true);
-  logTerminal(`Starting probe cycle against ${targets.length} targets...`);
+  logTerminal(`Starting live probe cycle against ${targets.length} targets...`);
 
   try {
-    if (isWails) {
-      await window.go.main.App.ProbeServers(targets, state.activeProtocols);
+    if (isWails()) {
+      const results = await window.go.main.App.ProbeServers(targets, state.activeProtocols);
+      if (results && Array.isArray(results)) {
+        results.forEach(upsertResult);
+      }
     } else {
       const resp = await fetch('/api/probe', {
         method: 'POST',
@@ -489,29 +512,34 @@ async function executeProbing(targets) {
         })
       });
       const data = await resp.json();
-      if (data && data.results) {
+      if (data && data.results && Array.isArray(data.results)) {
         data.results.forEach(upsertResult);
       }
-      state.isProbing = false;
-      updateEngineState(false);
     }
   } catch (err) {
     console.error('Probe failed:', err);
     showToast("Probe failed: " + err, "error");
+    logTerminal(`❌ Probe error: ${err}`);
+  } finally {
     state.isProbing = false;
     updateEngineState(false);
   }
 }
 
 function stopProbing() {
-  if (isWails) {
-    window.go.main.App.StopProbe();
-  } else {
-    fetch('/api/stop', { method: 'POST' });
+  try {
+    if (isWails()) {
+      window.go.main.App.StopProbe();
+    } else {
+      fetch('/api/stop', { method: 'POST' });
+    }
+  } catch (e) {
+    console.error('Stop error:', e);
+  } finally {
+    state.isProbing = false;
+    updateEngineState(false);
+    logTerminal("Probing halted by operator.");
   }
-  state.isProbing = false;
-  updateEngineState(false);
-  logTerminal("Probing halted by operator.");
 }
 
 function updateEngineState(probing) {
@@ -697,7 +725,7 @@ async function exportData(format) {
   }
 
   try {
-    if (isWails) {
+    if (isWails()) {
       const savedPath = await window.go.main.App.SaveExportFile(format, state.results);
       if (savedPath) {
         showToast(`Export saved successfully to: ${savedPath}`, "success");
@@ -749,9 +777,11 @@ function setupDropzone() {
 }
 
 function triggerFileUpload() {
-  if (isWails) {
-    window.go.main.App.SelectFile().then(([path, content]) => {
-      if (content) parseAndStageCustomContent(content);
+  if (isWails()) {
+    window.go.main.App.SelectFile().then(fileData => {
+      if (fileData && fileData.content) {
+        parseAndStageCustomContent(fileData.content);
+      }
     }).catch(err => {
       console.error(err);
     });
@@ -792,7 +822,7 @@ async function parseAndStageCustomContent(content) {
 
   try {
     let nodes = [];
-    if (isWails) {
+    if (isWails()) {
       nodes = await window.go.main.App.ParseCustomInput(content, allowPoison);
     } else {
       const resp = await fetch('/api/custom/parse', {

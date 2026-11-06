@@ -51,7 +51,12 @@ func (a *App) ParseCustomInput(content string, allowPoison bool) ([]engine.Custo
 	return a.engine.ParseCustomInput(content, allowPoison)
 }
 
-func (a *App) SelectFile() (string, string, error) {
+type SelectedFileData struct {
+	Path    string `json:"path"`
+	Content string `json:"content"`
+}
+
+func (a *App) SelectFile() (SelectedFileData, error) {
 	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
 		Title: "Select VPN Server Catalog or Hostlist",
 		Filters: []runtime.FileFilter{
@@ -61,13 +66,13 @@ func (a *App) SelectFile() (string, string, error) {
 		},
 	})
 	if err != nil || path == "" {
-		return "", "", err
+		return SelectedFileData{}, err
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return "", "", err
+		return SelectedFileData{Path: path}, err
 	}
-	return path, string(data), nil
+	return SelectedFileData{Path: path, Content: string(data)}, nil
 }
 
 func (a *App) SaveExportFile(format string, results []engine.UnifiedResult) (string, error) {

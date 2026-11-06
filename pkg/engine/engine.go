@@ -7,6 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"net"
+	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -131,18 +134,31 @@ func (e *Engine) FetchServers(ctx context.Context, provider, country string, max
 			if maxLoad > 0 && s.Load > maxLoad {
 				continue
 			}
+			if !strings.EqualFold(s.Status, "online") {
+				continue
+			}
+			// Skip dedicated IP, obfuscated servers, and socks proxies
+			if slices.Contains(s.Groups, "legacy_dedicated_ip") ||
+				slices.Contains(s.Groups, "legacy_obfuscated_servers") ||
+				slices.Contains(s.Tech, "socks") {
+				continue
+			}
+			if net.ParseIP(s.IP) == nil || poisoned(net.ParseIP(s.IP)) {
+				continue
+			}
 			protos := []string{}
-			if hasTech(s.Tech, "wireguard_udp") {
+			if hasTech(s.Tech, "wireguard_udp") || s.WGPub != "" {
 				protos = append(protos, "WireGuard")
 			}
 			if hasTech(s.Tech, "ikev2") {
 				protos = append(protos, "IKEv2")
 			}
-			if hasTech(s.Tech, "openvpn_udp") {
-				protos = append(protos, "OpenVPN UDP")
+			if hasTech(s.Tech, "openvpn_udp") || hasTech(s.Tech, "openvpn_tcp") {
+				protos = append(protos, "OpenVPN")
 			}
-			if hasTech(s.Tech, "openvpn_tcp") {
-				protos = append(protos, "OpenVPN TCP")
+			// Skip proxies or servers without supported VPN protocols
+			if len(protos) == 0 {
+				continue
 			}
 			out = append(out, UnifiedServer{
 				ID:          strconv.Itoa(s.ID),
@@ -160,6 +176,13 @@ func (e *Engine) FetchServers(ctx context.Context, provider, country string, max
 				Provider:    "nordvpn",
 			})
 		}
+		// Sort by lowest load first
+		sort.Slice(out, func(i, j int) bool {
+			if out[i].Load != out[j].Load {
+				return out[i].Load < out[j].Load
+			}
+			return out[i].Hostname < out[j].Hostname
+		})
 		return out, nil
 	}
 
@@ -188,6 +211,7 @@ func (e *Engine) FetchServers(ctx context.Context, provider, country string, max
 		if s.UDP || s.TCP || strings.EqualFold(s.VPN, "openvpn") {
 			protos = append(protos, "OpenVPN")
 		}
+		protos = append(protos, "IKEv2")
 		city := s.City
 		if city == "" {
 			city = s.Country
@@ -282,57 +306,128 @@ func (e *Engine) ProbeServers(parentCtx context.Context, servers []UnifiedServer
 				}
 
 				srv := servers[idx]
+				targetIP := srv.IP
+				if targetIP == "" && srv.Hostname != "" {
+					if ips, err := net.LookupIP(srv.Hostname); err == nil && len(ips) > 0 {
+						for _, ip := range ips {
+							if ip4 := ip.To4(); ip4 != nil {
+								targetIP = ip4.String()
+								break
+							}
+						}
+					}
+				}
+
+				if targetIP == "" {
+					res := UnifiedResult{
+						ID:       srv.ID,
+						Server:   srv,
+						Verdict:  "SILENT",
+						PingMS:   0,
+						IKE:      "silent",
+						WG:       "silent",
+						OVPN:     "silent",
+						Details:  "DNS lookup failed",
+						TestedAt: time.Now().Format("15:04:05"),
+					}
+					results[idx] = res
+					doneN := int(completed.Add(1))
+					onEvent(ProbeEvent{
+						Type:     "result",
+						Progress: doneN,
+						Total:    total,
+						Result:   &res,
+						Message:  fmt.Sprintf("[SILENT] %s => DNS lookup failed", srv.Hostname),
+					})
+					continue
+				}
+
 				ns := nordServer{
 					ID:       idx + 1,
 					Name:     srv.Name,
 					Hostname: srv.Hostname,
-					IP:       srv.IP,
+					IP:       targetIP,
 					Load:     srv.Load,
 					Country:  srv.Country,
 					Code:     srv.CountryCode,
 					City:     srv.City,
 					WGPub:    srv.WGPub,
 				}
-				for _, p := range srv.Protocols {
-					pLower := strings.ToLower(p)
-					if strings.Contains(pLower, "wire") {
-						ns.Tech = append(ns.Tech, "wireguard_udp")
+
+				// Enable protocols to probe based on selection and server capabilities
+				if scan.onWG() && (srv.WGPub != "" || hasProtocol(srv.Protocols, "WireGuard")) {
+					ns.Tech = append(ns.Tech, "wireguard_udp")
+				}
+				if scan.onIKE() && (len(srv.Protocols) == 0 || hasProtocol(srv.Protocols, "IKEv2") || hasProtocol(srv.Protocols, "ike")) {
+					ns.Tech = append(ns.Tech, "ikev2")
+				}
+				if scan.onOUDP() && (len(srv.Protocols) == 0 || hasProtocol(srv.Protocols, "OpenVPN") || hasProtocol(srv.Protocols, "openvpn_udp")) {
+					ns.Tech = append(ns.Tech, "openvpn_udp")
+				}
+				if scan.onOTCP() && (len(srv.Protocols) == 0 || hasProtocol(srv.Protocols, "OpenVPN") || hasProtocol(srv.Protocols, "openvpn_tcp")) {
+					ns.Tech = append(ns.Tech, "openvpn_tcp")
+				}
+
+				if len(ns.Tech) == 0 {
+					res := UnifiedResult{
+						ID:       srv.ID,
+						Server:   srv,
+						Verdict:  "SILENT",
+						PingMS:   0,
+						IKE:      "skip",
+						WG:       "skip",
+						OVPN:     "skip",
+						Details:  "No selected protocol supported by target",
+						TestedAt: time.Now().Format("15:04:05"),
 					}
-					if strings.Contains(pLower, "ike") {
-						ns.Tech = append(ns.Tech, "ikev2")
-					}
-					if strings.Contains(pLower, "udp") {
-						ns.Tech = append(ns.Tech, "openvpn_udp")
-					}
-					if strings.Contains(pLower, "tcp") {
-						ns.Tech = append(ns.Tech, "openvpn_tcp")
-					}
+					results[idx] = res
+					doneN := int(completed.Add(1))
+					onEvent(ProbeEvent{
+						Type:     "result",
+						Progress: doneN,
+						Total:    total,
+						Result:   &res,
+						Message:  fmt.Sprintf("[SKIP] %s => No matching protocol", srv.Hostname),
+					})
+					continue
 				}
 
 				opts := nordOpts{
 					scan:       scan,
-					ikeTimeout: 1200 * time.Millisecond,
-					tcpTimeout: 1200 * time.Millisecond,
+					ikeTimeout: 1800 * time.Millisecond,
+					tcpTimeout: 1800 * time.Millisecond,
 					ikeUser:    "health@nordvpn.com",
 					ikeID:      "nordvpn.com",
+				}
+				if srv.Provider != "nordvpn" && srv.Provider != "" {
+					opts.ikeUser = "this is health check"
+					opts.ikeID = "ironnodes.com"
 				}
 
 				hit := probeServer(ctx, pool, prime, ns, opts)
 				fresh, fw := scoreHit(hit)
 
 				verdict := "SILENT"
-				if fresh == "yes" {
+				if fresh == "yes" || hit.WG == "real" || hit.OUDP == "real" || hit.OTCP == "real" || hit.IKE == "real" {
 					verdict = "REAL"
 				} else if hit.IKEPhase1 == statusOK {
 					verdict = "P1"
 				}
 
 				rtt := hit.rtt()
-				if rtt == 0 && hit.IKEMS > 0 {
-					rtt = hit.IKEMS
+				if rtt == 1<<30 || rtt < 0 {
+					rtt = 0
 				}
-				if rtt == 0 && hit.WGMS > 0 {
-					rtt = hit.WGMS
+				if rtt == 0 {
+					if hit.IKEMS > 0 {
+						rtt = hit.IKEMS
+					} else if hit.WGMS > 0 {
+						rtt = hit.WGMS
+					} else if hit.OUDPMS > 0 {
+						rtt = hit.OUDPMS
+					} else if hit.OTCPMS > 0 {
+						rtt = hit.OTCPMS
+					}
 				}
 
 				res := UnifiedResult{
@@ -360,7 +455,7 @@ func (e *Engine) ProbeServers(parentCtx context.Context, servers []UnifiedServer
 					Progress: doneN,
 					Total:    total,
 					Result:   &res,
-					Message:  fmt.Sprintf("[%s] %s (%s) => %s in %dms", verdict, srv.Hostname, srv.IP, verdict, rtt),
+					Message:  fmt.Sprintf("[%s] %s (%s) => %s in %dms", verdict, srv.Hostname, targetIP, verdict, rtt),
 				})
 			}
 		}()
@@ -472,4 +567,13 @@ func (e *Engine) ExportResults(format string, results []UnifiedResult) ([]byte, 
 	default:
 		return nil, "", fmt.Errorf("unsupported format %s", format)
 	}
+}
+
+func hasProtocol(list []string, target string) bool {
+	for _, item := range list {
+		if strings.EqualFold(item, target) {
+			return true
+		}
+	}
+	return false
 }
