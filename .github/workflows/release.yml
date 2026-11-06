@@ -12,13 +12,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
       - run: go test ./...
 
-  build:
+  build-cli:
     needs: test
     runs-on: ubuntu-latest
     strategy:
@@ -32,11 +32,11 @@ jobs:
           - { goos: windows, goarch: amd64 }
           - { goos: windows, goarch: arm64 }
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Package ${{ matrix.goos }}/${{ matrix.goarch }}
+      - name: Package CLI ${{ matrix.goos }}/${{ matrix.goarch }}
         shell: bash
         env:
           GOOS: ${{ matrix.goos }}
@@ -49,34 +49,83 @@ jobs:
           if [ "$GOOS" = "windows" ]; then
             bin="vpnban.exe"
           fi
-          go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" -o "$bin"
+          go build -trimpath -ldflags "-s -w -X main.version=${GITHUB_REF_NAME}" -o "$bin" .
           archive="vpnban_${version}_${GOOS}_${GOARCH}"
           if [ "$GOOS" = "windows" ]; then
             zip "${archive}.zip" "$bin"
           else
             tar -czf "${archive}.tar.gz" "$bin"
           fi
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v4
         with:
-          name: vpnban-${{ matrix.goos }}-${{ matrix.goarch }}
+          name: vpnban-cli-${{ matrix.goos }}-${{ matrix.goarch }}
           path: vpnban_*
           if-no-files-found: error
 
+  build-desktop:
+    needs: test
+    name: Package Desktop (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-latest, platform: darwin/universal, pkg_name: darwin_universal }
+          - { os: ubuntu-latest, platform: linux/amd64, pkg_name: linux_amd64 }
+          - { os: windows-latest, platform: windows/amd64, pkg_name: windows_amd64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Linux Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev || sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build Desktop Window App
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          cd desktop
+          wails build -platform ${{ matrix.platform }} -clean -v 1
+          
+          # Package build output
+          cd build/bin
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            zip -r "../../../vpnban-desktop_${version}_${{ matrix.pkg_name }}.zip" vpnban.app
+          elif [ "${{ runner.os }}" = "Windows" ]; then
+            zip "../../../vpnban-desktop_${version}_${{ matrix.pkg_name }}.zip" vpnban.exe
+          else
+            tar -czf "../../../vpnban-desktop_${version}_${{ matrix.pkg_name }}.tar.gz" vpnban
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vpnban-desktop-${{ matrix.pkg_name }}
+          path: vpnban-desktop_*
+          if-no-files-found: error
+
   publish:
-    needs: build
+    needs: [build-cli, build-desktop]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
       - name: SHA256 checksums
         working-directory: dist
-        run: sha256sum vpnban_* > checksums.txt
-      - uses: softprops/action-gh-release@v3
+        run: sha256sum vpnban* > checksums.txt
+      - uses: softprops/action-gh-release@v2
         with:
           name: vpnban ${{ github.ref_name }}
           generate_release_notes: true
           files: |
-            dist/vpnban_*
+            dist/vpnban*
             dist/checksums.txt

@@ -1,9 +1,45 @@
+# Binaries & Compiled Executables
 /vpnban
 /vpnban.exe
-/dist/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
 
+# Build Outputs & Packaging
+/dist/
+/desktop/build/bin/
+/build/bin/
+
+# Temporary Probe Results & Reports
 /nord-results.*
 /vpnban-results.*
+*-results.*
+*.pcap
+*.har
 
+# Temporary & Raw Uploaded Assets
+Gemini_Generated_Image_*
 
+# OS Metadata
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+
+# IDE & Editor Artifacts
+.idea/
+.vscode/
+*.swp
+*~
+*.log
+
+# Frontend & Caches
+node_modules/
+/desktop/frontend/dist/
+
+stitch_screens/

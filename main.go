@@ -86,11 +86,21 @@ func main() {
 	country := flag.String("country", "", "NordVPN country code or name, comma-separated")
 	maxLoad := flag.Int("load", 100, "Skip NordVPN servers above this load")
 	offline := flag.Bool("offline", false, "Also probe NordVPN servers that are not online")
+	guiMode := flag.Bool("gui", false, "launch interactive graphical web/desktop UI")
+	webMode := flag.Bool("web", false, "alias for -gui")
+	guiPort := flag.Int("port", 8329, "port for GUI web dashboard")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	doUpdate := flag.Bool("update", false, "replace this binary with the latest GitHub release")
 	flag.Parse()
 	if *showVersion {
 		fmt.Println(version)
+		return
+	}
+	if *guiMode || *webMode {
+		if err := startGUIServer(*guiPort, true); err != nil {
+			fmt.Fprintln(os.Stderr, "❌", err)
+			os.Exit(1)
+		}
 		return
 	}
 	if *doUpdate {
@@ -219,6 +229,7 @@ func main() {
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "📡 vpnban (%s)\n", version)
+	fmt.Fprintln(os.Stderr, "  vpnban -gui                          launch interactive window / web UI")
 	fmt.Fprintln(os.Stderr, "  vpnban -nord                         IKEv2 only")
 	fmt.Fprintln(os.Stderr, "  vpnban -nord -proto wire")
 	fmt.Fprintln(os.Stderr, "  vpnban -nord -proto ikev2,wire")

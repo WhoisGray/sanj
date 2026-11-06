@@ -25,6 +25,7 @@
 
 ## Why vpnban?
 
+- **Desktop Window App & Web GUI:** Native cross-platform app (macOS, Windows, Linux) built with Stitch UI designs, featuring an interactive dark HUD world map, live protocol telemetry, server health matrix, and custom node ingress. Run as a standalone window app or via `vpnban -gui`.
 - **Choose the checks:** IKEv2 by default; WireGuard, OpenVPN, combinations, or a full NordVPN scan.
 - **Narrow the search:** filter NordVPN servers by country and load, then limit how many to check.
 - **Bring your own list:** use domain/IPv4 text files, supported JSON catalogs, or previous results.
@@ -70,8 +71,20 @@ go install github.com/whoisGray/vpnban@latest
 
 ```bash
 vpnban -version
+vpnban -gui                              # Launch interactive Window/Web UI
 vpnban -nord -country se -limit 10
 ```
+
+### Desktop Window App (macOS · Linux · Windows)
+
+You can launch the Stitch UI directly from the CLI or download the standalone native desktop application:
+
+- **From CLI:** Run `vpnban -gui` (opens `http://127.0.0.1:8329` in your default window).
+- **Standalone App:** Build or download `vpnban-desktop` (macOS `.app`/DMG, Windows `.exe`, Linux AppImage). To build locally:
+  ```bash
+  cd desktop
+  wails build
+  ```
 
 This checks IKEv2 on up to ten Swedish NordVPN servers. In PowerShell, use `.\vpnban.exe` if the executable is in your current folder rather than on `PATH`.
 
@@ -145,6 +158,8 @@ In custom-file discovery, if DNS returns only private addresses, vpnban stops by
 
 | Flag | Default | Purpose |
 | --- | --- | --- |
+| `-gui` | `false` | Launch the interactive graphical web/desktop UI |
+| `-port` | `8329` | Port for the GUI web server |
 | `-nord` | `false` | Discover and check NordVPN servers |
 | `-provider` | — | Discover another provider from gluetun-servers JSON |
 | `-proto` | `ikev2` | NordVPN or provider protocol selection |
