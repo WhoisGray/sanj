@@ -1,14 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-labelledby="title desc">
-<title id="title">sanj — VPN server checks</title><desc id="desc">Discover servers, check protocol responses, and export JSON, CSV, and XLSX reports.</desc>
+<title id="title">vpnban — the keeper of VPN checks</title><desc id="desc">The keeper that holds VPN servers in mind. Discover hosts, check protocol responses, and keep JSON, CSV, and XLSX reports.</desc>
 <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#081523"/><stop offset="1" stop-color="#122b3b"/></linearGradient><linearGradient id="accent"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs>
 <rect width="1280" height="400" rx="24" fill="url(#bg)"/>
 <g fill="none" stroke="#204457" opacity=".55"><circle cx="1130" cy="85" r="185"/><circle cx="1130" cy="85" r="235"/><circle cx="1130" cy="85" r="285"/></g>
 <rect x="60" y="62" width="52" height="6" rx="3" fill="url(#accent)"/>
-<text x="60" y="151" fill="#f0f9ff" font-family="system-ui, sans-serif" font-size="78" font-weight="750">sanj</text>
-<text x="64" y="198" fill="#b7d6e5" font-family="system-ui, sans-serif" font-size="25">VPN server checks. From your terminal.</text>
-<text x="64" y="245" fill="#72b5d3" font-family="system-ui, sans-serif" font-size="17">DISCOVER / CHECK / EXPORT</text>
+<text x="124" y="70" fill="#7dd3fc" font-family="system-ui, sans-serif" font-size="14" font-weight="650" letter-spacing="2.4">KEEPER</text>
+<text x="60" y="151" fill="#f0f9ff" font-family="system-ui, sans-serif" font-size="72" font-weight="750">vpnban</text>
+<text x="64" y="198" fill="#b7d6e5" font-family="system-ui, sans-serif" font-size="25">The keeper of your VPN checks.</text>
+<text x="64" y="245" fill="#72b5d3" font-family="system-ui, sans-serif" font-size="17">DISCOVER / CHECK / KEEP</text>
 <g font-family="monospace" font-size="17"><rect x="64" y="291" width="138" height="38" rx="19" fill="#173a4d"/><text x="86" y="316" fill="#7dd3fc">IKEv2</text><rect x="214" y="291" width="164" height="38" rx="19" fill="#173a4d"/><text x="235" y="316" fill="#7dd3fc">WireGuard</text><rect x="390" y="291" width="148" height="38" rx="19" fill="#173a4d"/><text x="411" y="316" fill="#7dd3fc">OpenVPN</text></g>
 <rect x="683" y="89" width="529" height="238" rx="15" fill="#07111c" stroke="#315366"/>
 <path d="M683 129H1212" stroke="#234354"/>
 <g fill="#526d7d"><circle cx="707" cy="109" r="5"/><circle cx="726" cy="109" r="5"/><circle cx="745" cy="109" r="5"/></g>
-<g font-family="monospace" font-size="18"><text x="709" y="175" fill="#34d399">$ sanj -nord -country se -limit 10</text><text x="709" y="218" fill="#9fbdce">Select a protocol. Check responses.</text><text x="709" y="259" fill="#e3f3fa">JSON</text><text x="790" y="259" fill="#526d7d">/</text><text x="817" y="259" fill="#e3f3fa">CSV</text><text x="882" y="259" fill="#526d7d">/</text><text x="910" y="259" fill="#e3f3fa">XLSX</text><text x="709" y="300" fill="#526d7d">macOS · Linux · Windows</text></g></svg>
+<g font-family="monospace" font-size="18"><text x="709" y="175" fill="#34d399">$ vpnban -nord -country se -limit 10</text><text x="709" y="218" fill="#9fbdce">Select a protocol. Keep the results.</text><text x="709" y="259" fill="#e3f3fa">JSON</text><text x="790" y="259" fill="#526d7d">/</text><text x="817" y="259" fill="#e3f3fa">CSV</text><text x="882" y="259" fill="#526d7d">/</text><text x="910" y="259" fill="#e3f3fa">XLSX</text><text x="709" y="300" fill="#526d7d">macOS · Linux · Windows</text></g></svg>

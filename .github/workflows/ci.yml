@@ -43,4 +43,4 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: "0"
-        run: go build -trimpath -o /tmp/sanj .
+        run: go build -trimpath -o /tmp/vpnban .

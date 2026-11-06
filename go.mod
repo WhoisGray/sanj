@@ -1,4 +1,4 @@
-module github.com/whoisGray/sanj
+module github.com/whoisGray/vpnban
 
 go 1.22
 

@@ -1,8 +1,8 @@
 #!/bin/sh
-# Install the latest sanj release. -update does the same install again.
+# Install the latest vpnban release. -update does the same install again.
 set -eu
 
-repo="WhoisGray/sanj"
+repo="WhoisGray/vpnban"
 update=0
 for arg in "$@"; do
   case "$arg" in
@@ -40,7 +40,7 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 api="https://api.github.com/repos/${repo}/releases/latest"
-json=$(curl -fsSL -A sanj-install -H "Accept: application/vnd.github+json" "$api") || {
+json=$(curl -fsSL -A vpnban-install -H "Accept: application/vnd.github+json" "$api") || {
   echo "could not read the latest release" >&2
   exit 1
 }
@@ -55,24 +55,24 @@ case "$tag" in
 esac
 ver=${tag#v}
 
-if command -v sanj >/dev/null 2>&1; then
-  current=$(sanj -version 2>/dev/null || true)
+if command -v vpnban >/dev/null 2>&1; then
+  current=$(vpnban -version 2>/dev/null || true)
   if [ "$current" = "$tag" ]; then
-    echo "sanj ${tag} is already the latest"
+    echo "vpnban ${tag} is already the latest"
     exit 0
   fi
 fi
 
-asset="sanj_${ver}_${goos}_${goarch}.tar.gz"
+asset="vpnban_${ver}_${goos}_${goarch}.tar.gz"
 base="https://github.com/${repo}/releases/download/${tag}"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-curl -fsSL -A sanj-install -o "$tmp/$asset" "$base/$asset" || {
+curl -fsSL -A vpnban-install -o "$tmp/$asset" "$base/$asset" || {
   echo "download failed: $base/$asset" >&2
   exit 1
 }
-curl -fsSL -A sanj-install -o "$tmp/checksums.txt" "$base/checksums.txt" || {
+curl -fsSL -A vpnban-install -o "$tmp/checksums.txt" "$base/checksums.txt" || {
   echo "download failed: $base/checksums.txt" >&2
   exit 1
 }
@@ -93,23 +93,23 @@ if [ -z "$want" ] || [ "$got" != "$want" ]; then
   exit 1
 fi
 
-tar -xzf "$tmp/$asset" -C "$tmp" sanj
-chmod 755 "$tmp/sanj"
+tar -xzf "$tmp/$asset" -C "$tmp" vpnban
+chmod 755 "$tmp/vpnban"
 
-if command -v sanj >/dev/null 2>&1; then
-  dest=$(command -v sanj)
+if command -v vpnban >/dev/null 2>&1; then
+  dest=$(command -v vpnban)
 elif [ -d /usr/local/bin ] && [ -w /usr/local/bin ]; then
-  dest=/usr/local/bin/sanj
+  dest=/usr/local/bin/vpnban
 else
   mkdir -p "${HOME}/.local/bin"
-  dest="${HOME}/.local/bin/sanj"
+  dest="${HOME}/.local/bin/vpnban"
 fi
 
 dest_dir=$(dirname "$dest")
 if [ -w "$dest_dir" ] && { [ ! -e "$dest" ] || [ -w "$dest" ]; }; then
-  mv "$tmp/sanj" "$dest"
+  mv "$tmp/vpnban" "$dest"
 else
-  sudo mv "$tmp/sanj" "$dest"
+  sudo mv "$tmp/vpnban" "$dest"
   sudo chmod 755 "$dest"
 fi
 chmod 755 "$dest" 2>/dev/null || true

@@ -65,7 +65,7 @@ type probe struct {
 }
 
 func main() {
-	file := flag.String("file", "", "servers.json, a text file of hosts (one per line), or sanj-results.json")
+	file := flag.String("file", "", "servers.json, a text file of hosts (one per line), or vpnban-results.json")
 	phase := flag.String("phase", "", "1 discover, 2 probe, all both. Empty: phase 2 when no file, both when the file is a catalog")
 	conc := flag.Int("c", 80, "number of concurrent workers")
 	dnsAddr := flag.String("dns", "1.1.1.1:53", "DNS server")
@@ -73,9 +73,9 @@ func main() {
 	tcpTimeout := flag.Duration("tcp-timeout", 1200*time.Millisecond, "TCP connect timeout")
 	ikeUser := flag.String("ike-user", "this is health check", "user identity for IKE_AUTH")
 	ikeID := flag.String("ike-id", "ironnodes.com", "remote ID for IKE_AUTH")
-	jsonOut := flag.String("json", "sanj-results.json", "JSON output path")
-	xlsxOut := flag.String("xlsx", "sanj-results.xlsx", "Excel output path")
-	csvOut := flag.String("csv", "sanj-results.csv", "CSV output path")
+	jsonOut := flag.String("json", "vpnban-results.json", "JSON output path")
+	xlsxOut := flag.String("xlsx", "vpnban-results.xlsx", "Excel output path")
+	csvOut := flag.String("csv", "vpnban-results.csv", "CSV output path")
 	allowPoison := flag.Bool("allow-poisoned", false, "keep going even when DNS returns a private address such as 10.10")
 	nordMode := flag.Bool("nord", false, "Fetch the NordVPN server list and probe the protocols in -proto")
 	proto := flag.String("proto", "ikev2", "ikev2 (default), wire, openvpn, a comma list such as ikev2,wire, or full")
@@ -118,8 +118,8 @@ func main() {
 	}
 
 	if *file == "" && *phase == "" {
-		if _, err := os.Stat("sanj-results.json"); err == nil {
-			*file = "sanj-results.json"
+		if _, err := os.Stat("vpnban-results.json"); err == nil {
+			*file = "vpnban-results.json"
 			*phase = "2"
 		} else {
 			usage()
@@ -202,16 +202,16 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "📡 nordvpn checker (%s)\n", version)
-	fmt.Fprintln(os.Stderr, "  sanj -nord                         IKEv2 only")
-	fmt.Fprintln(os.Stderr, "  sanj -nord -proto wire")
-	fmt.Fprintln(os.Stderr, "  sanj -nord -proto ikev2,wire")
-	fmt.Fprintln(os.Stderr, "  sanj -nord -proto full")
-	fmt.Fprintln(os.Stderr, "  sanj -nord -refresh -c 256 -country se -limit 40")
-	fmt.Fprintln(os.Stderr, "  sanj -file servers.json")
-	fmt.Fprintln(os.Stderr, "  sanj -file server.txt          one domain or IPv4 per line")
-	fmt.Fprintln(os.Stderr, "  sanj -update                   install the latest release")
-	fmt.Fprintln(os.Stderr, "  sanj                         phase 2 on sanj-results.json")
+	fmt.Fprintf(os.Stderr, "📡 vpnban (%s)\n", version)
+	fmt.Fprintln(os.Stderr, "  vpnban -nord                         IKEv2 only")
+	fmt.Fprintln(os.Stderr, "  vpnban -nord -proto wire")
+	fmt.Fprintln(os.Stderr, "  vpnban -nord -proto ikev2,wire")
+	fmt.Fprintln(os.Stderr, "  vpnban -nord -proto full")
+	fmt.Fprintln(os.Stderr, "  vpnban -nord -refresh -c 256 -country se -limit 40")
+	fmt.Fprintln(os.Stderr, "  vpnban -file servers.json")
+	fmt.Fprintln(os.Stderr, "  vpnban -file server.txt          one domain or IPv4 per line")
+	fmt.Fprintln(os.Stderr, "  vpnban -update                   install the latest release")
+	fmt.Fprintln(os.Stderr, "  vpnban                         phase 2 on vpnban-results.json")
 }
 
 func loadInput(path string) ([]entry, []probe, string, error) {

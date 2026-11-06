@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	releaseAPI      = "https://api.github.com/repos/WhoisGray/sanj/releases/latest"
+	releaseAPI      = "https://api.github.com/repos/WhoisGray/vpnban/releases/latest"
 	maxReleaseBytes = 64 << 20
 )
 
@@ -59,7 +59,7 @@ func updateExecutable(exe, api string) error {
 		return fmt.Errorf("latest release has no tag")
 	}
 	if sameRelease(version, rel.TagName) {
-		fmt.Printf("sanj %s is already the latest\n", rel.TagName)
+		fmt.Printf("vpnban %s is already the latest\n", rel.TagName)
 		return nil
 	}
 	name, err := releaseAssetName(rel.TagName, runtime.GOOS, runtime.GOARCH)
@@ -132,7 +132,7 @@ func releaseAssetName(tag, goos, goarch string) (string, error) {
 	if goos == "windows" {
 		ext = ".zip"
 	}
-	return fmt.Sprintf("sanj_%s_%s_%s%s", ver, goos, goarch, ext), nil
+	return fmt.Sprintf("vpnban_%s_%s_%s%s", ver, goos, goarch, ext), nil
 }
 
 func checksumFor(text, name string) (string, error) {
@@ -155,9 +155,9 @@ func checksumFor(text, name string) (string, error) {
 }
 
 func extractBinary(archiveName string, data []byte) ([]byte, error) {
-	want := "sanj"
+	want := "vpnban"
 	if strings.HasSuffix(archiveName, ".zip") {
-		want = "sanj.exe"
+		want = "vpnban.exe"
 		return unzipOne(data, want)
 	}
 	return untarOne(data, want)
@@ -227,7 +227,7 @@ func getBytes(url string, limit int64, accept string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "sanj/"+strings.TrimSpace(version))
+	req.Header.Set("User-Agent", "vpnban/"+strings.TrimSpace(version))
 	if accept != "" {
 		req.Header.Set("Accept", accept)
 	}
@@ -255,7 +255,7 @@ func getBytes(url string, limit int64, accept string) ([]byte, error) {
 
 func replaceExecutable(path string, body []byte) error {
 	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, ".sanj-new-*")
+	tmp, err := os.CreateTemp(dir, ".vpnban-new-*")
 	if err != nil {
 		return fmt.Errorf("cannot replace %s: %w; run with permission to write that file", path, err)
 	}
@@ -278,7 +278,7 @@ func replaceExecutable(path string, body []byte) error {
 		return err
 	}
 	if runtime.GOOS == "windows" {
-		// shortcut: Windows locks the running exe, so the previous file stays as sanj.exe.old until the next update removes it.
+		// shortcut: Windows locks the running exe, so the previous file stays as vpnban.exe.old until the next update removes it.
 		old := path + ".old"
 		os.Remove(old)
 		if err := os.Rename(path, old); err != nil {

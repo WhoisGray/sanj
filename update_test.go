@@ -27,11 +27,11 @@ func TestSameRelease(t *testing.T) {
 
 func TestReleaseAssetName(t *testing.T) {
 	name, err := releaseAssetName("v1.0.1", "darwin", "arm64")
-	if err != nil || name != "sanj_1.0.1_darwin_arm64.tar.gz" {
+	if err != nil || name != "vpnban_1.0.1_darwin_arm64.tar.gz" {
 		t.Fatalf("darwin: %s %v", name, err)
 	}
 	name, err = releaseAssetName("v1.0.1", "windows", "amd64")
-	if err != nil || name != "sanj_1.0.1_windows_amd64.zip" {
+	if err != nil || name != "vpnban_1.0.1_windows_amd64.zip" {
 		t.Fatalf("windows: %s %v", name, err)
 	}
 	if _, err := releaseAssetName("v1.0.1", "linux", "386"); err == nil {
@@ -41,9 +41,9 @@ func TestReleaseAssetName(t *testing.T) {
 
 func TestChecksumFor(t *testing.T) {
 	text := "abc\n" +
-		"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef  sanj_1.0.1_linux_amd64.tar.gz\n" +
-		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *sanj_1.0.1_windows_amd64.zip\n"
-	got, err := checksumFor(text, "sanj_1.0.1_windows_amd64.zip")
+		"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef  vpnban_1.0.1_linux_amd64.tar.gz\n" +
+		"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa *vpnban_1.0.1_windows_amd64.zip\n"
+	got, err := checksumFor(text, "vpnban_1.0.1_windows_amd64.zip")
 	if err != nil || got != "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" {
 		t.Fatalf("%s %v", got, err)
 	}
@@ -84,7 +84,7 @@ func TestUpdateExecutable(t *testing.T) {
 	t.Cleanup(func() { version = old })
 
 	version = "v1.0.1"
-	exe := filepath.Join(t.TempDir(), "sanj")
+	exe := filepath.Join(t.TempDir(), "vpnban")
 	if err := os.WriteFile(exe, []byte("old"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -149,9 +149,9 @@ func packTagged(t *testing.T, tag string, payload []byte) (string, []byte) {
 		t.Fatal(err)
 	}
 	var buf bytes.Buffer
-	member := "sanj"
+	member := "vpnban"
 	if runtime.GOOS == "windows" {
-		member = "sanj.exe"
+		member = "vpnban.exe"
 		zw := zip.NewWriter(&buf)
 		w, err := zw.Create(member)
 		if err != nil {

@@ -1,26 +1,26 @@
 <div align="center">
 
-<img src="docs/assets/sanj-banner.svg" alt="سنج — بررسی پاسخ سرورهای VPN از ترمینال" width="100%">
+<img src="docs/assets/vpnban-banner.svg" alt="vpnban — نگهبان بررسی سرورهای VPN" width="100%">
 
-# sanj · سنج
+# vpnban · بان
 
-**پاسخ سرورهای VPN را بررسی کنید، پروتکل را انتخاب کنید و نتیجه را نگه دارید.**
+**نگهبان بررسی‌های VPN. پروتکل را انتخاب کنید و نتیجه را به خاطر بسپارید.**
 
 [English](README.md) · [فارسی](README.fa.md)
 
-[![CI](https://github.com/WhoisGray/sanj/actions/workflows/ci.yml/badge.svg)](https://github.com/WhoisGray/sanj/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/WhoisGray/sanj?color=38bdf8)](https://github.com/WhoisGray/sanj/releases/latest)
+[![CI](https://github.com/WhoisGray/vpnban/actions/workflows/ci.yml/badge.svg)](https://github.com/WhoisGray/vpnban/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/WhoisGray/vpnban?color=38bdf8)](https://github.com/WhoisGray/vpnban/releases/latest)
 [![Contributions welcome](https://img.shields.io/badge/contributions-welcome-34d399)](#مشارکت)
 
 </div>
 
 ---
 
-سنج یک ابزار خط فرمان با Go برای بررسی پاسخ سرورهای VPN است. فهرست سرورها را از API رسمی NordVPN می‌گیرد یا فهرست دامنه و IPv4 شما را می‌خواند و نتیجه را در JSON، CSV و Excel ذخیره می‌کند.
+**vpnban** (بان، «نگهبان») ابزار خط فرمان Go است که سرورها و نتیجه‌های بررسی را به خاطر می‌سپارد. فهرست سرورها را از API رسمی NordVPN می‌گیرد یا فهرست دامنه و IPv4 شما را می‌خواند و نتیجه را در JSON، CSV و Excel نگه می‌دارد.
 
 > نتیجهٔ بررسی، وضعیت پاسخ‌گویی از شبکهٔ فعلی شماست و ورود موفق، ساخت تونل یا سرعت اینترنت را تضمین نمی‌کند. فقط سرورهایی را بررسی کنید که اجازهٔ آزمایششان را دارید.
 
-## چرا سنج؟
+## چرا بان؟
 
 - انتخاب IKEv2، WireGuard، OpenVPN یا ترکیبی از آن‌ها در حالت NordVPN.
 - فیلتر کشور و بار سرور و محدود کردن تعداد بررسی‌ها.
@@ -33,11 +33,11 @@
 پس از نصب، یک بررسی محدود انجام دهید:
 
 ```bash
-sanj -version
-sanj -nord -country se -limit 10
+vpnban -version
+vpnban -nord -country se -limit 10
 ```
 
-این دستور IKEv2 را روی حداکثر ده سرور سوئد بررسی می‌کند. در PowerShell، اگر فایل در پوشهٔ فعلی است، از `.\sanj.exe` استفاده کنید.
+این دستور IKEv2 را روی حداکثر ده سرور سوئد بررسی می‌کند. در PowerShell، اگر فایل در پوشهٔ فعلی است، از `.\vpnban.exe` استفاده کنید.
 
 ## دانلود
 
@@ -46,48 +46,48 @@ sanj -nord -country se -limit 10
 macOS و Linux. همین یک خط نصب می‌کند، و با `-update` همان خط را برای آخرین نسخه دوباره می‌زند:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/WhoisGray/sanj/refs/heads/main/install.sh | sh -s -- -update
+curl -fsSL https://raw.githubusercontent.com/WhoisGray/vpnban/refs/heads/main/install.sh | sh -s -- -update
 ```
 
 Windows در PowerShell. دوباره اجرا کردنش یعنی به‌روزرسانی:
 
 ```powershell
-irm https://raw.githubusercontent.com/WhoisGray/sanj/refs/heads/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/WhoisGray/vpnban/refs/heads/main/install.ps1 | iex
 ```
 
 برای به‌روزرسانی نسخه‌های دارای پرچم `-update`، روی هر سه سیستم:
 
 ```bash
-sanj -update
+vpnban -update
 ```
 
 نسخهٔ قدیمی `v1.0.1` پرچم `-update` را ندارد. برای این نسخه، همان دستور نصب را دوباره اجرا کنید.
 
-فایل هر سیستم از [Releases](https://github.com/whoisGray/sanj/releases) هم جداگانه هست. با پوش کردن یک تگ مثل `v1.1.0` ساخته می‌شود. کنار فایل‌ها `checksums.txt` هست.
+فایل هر سیستم از [Releases](https://github.com/whoisGray/vpnban/releases) هم جداگانه هست. با پوش کردن یک تگ مثل `v1.1.0` ساخته می‌شود. کنار فایل‌ها `checksums.txt` هست.
 
 | سیستم | معماری | فایل |
 | --- | --- | --- |
-| macOS اپل سیلیکون | arm64 | `sanj_1.1.0_darwin_arm64.tar.gz` |
-| macOS اینتل | amd64 | `sanj_1.1.0_darwin_amd64.tar.gz` |
-| Linux | amd64 | `sanj_1.1.0_linux_amd64.tar.gz` |
-| Linux | arm64 | `sanj_1.1.0_linux_arm64.tar.gz` |
-| Windows | amd64 | `sanj_1.1.0_windows_amd64.zip` |
-| Windows | arm64 | `sanj_1.1.0_windows_arm64.zip` |
+| macOS اپل سیلیکون | arm64 | `vpnban_1.1.0_darwin_arm64.tar.gz` |
+| macOS اینتل | amd64 | `vpnban_1.1.0_darwin_amd64.tar.gz` |
+| Linux | amd64 | `vpnban_1.1.0_linux_amd64.tar.gz` |
+| Linux | arm64 | `vpnban_1.1.0_linux_arm64.tar.gz` |
+| Windows | amd64 | `vpnban_1.1.0_windows_amd64.zip` |
+| Windows | arm64 | `vpnban_1.1.0_windows_arm64.zip` |
 
 `1.1.0` همان شمارهٔ تگ است، بدون `v`.
 
 ### macOS و Linux
 
 ```bash
-tar -xzf sanj_1.1.0_darwin_arm64.tar.gz
-sudo mv sanj /usr/local/bin/
-sanj -version
+tar -xzf vpnban_1.1.0_darwin_arm64.tar.gz
+sudo mv vpnban /usr/local/bin/
+vpnban -version
 ```
 
 بایینری امضا نشده است. اگر Gatekeeper روی مک جلوی اجرا را گرفت:
 
 ```bash
-xattr -d com.apple.quarantine /usr/local/bin/sanj
+xattr -d com.apple.quarantine /usr/local/bin/vpnban
 ```
 
 جمع چک:
@@ -103,8 +103,8 @@ shasum -a 256 -c checksums.txt
 zip را باز کنید و در PowerShell:
 
 ```powershell
-.\sanj.exe -version
-Get-FileHash .\sanj_1.1.0_windows_amd64.zip -Algorithm SHA256
+.\vpnban.exe -version
+Get-FileHash .\vpnban_1.1.0_windows_amd64.zip -Algorithm SHA256
 ```
 
 هش را با خط همان فایل در `checksums.txt` مقایسه کنید.
@@ -114,19 +114,19 @@ Get-FileHash .\sanj_1.1.0_windows_amd64.zip -Algorithm SHA256
 Go 1.22 یا جدیدتر:
 
 ```bash
-go install github.com/whoisGray/sanj@latest
+go install github.com/whoisGray/vpnban@latest
 ```
 
 ## استفاده
 
 ```bash
-sanj -nord                         # فقط IKEv2
-sanj -nord -proto wire             # فقط WireGuard
-sanj -nord -proto ikev2,wire
-sanj -nord -proto full             # همه‌ی پروتکل‌ها
-sanj -nord -country se -limit 40 -c 64
-sanj -file servers.json
-sanj -file server.txt              # هر خط یک دامنه یا IPv4
+vpnban -nord                         # فقط IKEv2
+vpnban -nord -proto wire             # فقط WireGuard
+vpnban -nord -proto ikev2,wire
+vpnban -nord -proto full             # همه‌ی پروتکل‌ها
+vpnban -nord -country se -limit 40 -c 64
+vpnban -file servers.json
+vpnban -file server.txt              # هر خط یک دامنه یا IPv4
 ```
 
 `-proto` این‌ها را می‌پذیرد: `ikev2`، `wire` (همان `wg` و `wireguard`)، `openvpn`، فهرست با ویرگول، یا `full`.
@@ -141,7 +141,7 @@ sanj -file server.txt              # هر خط یک دامنه یا IPv4
 - `nord-results.csv`
 - `nord-results.xlsx`
 
-حالت فایل، خروجی را در `sanj-results.json` و `sanj-results.csv` و `sanj-results.xlsx` می‌نویسد.
+حالت فایل، خروجی را در `vpnban-results.json` و `vpnban-results.csv` و `vpnban-results.xlsx` می‌نویسد.
 
 کش فهرست Nord در `~/.cache/nordike` است و ۶ ساعت می‌ماند. `-refresh` کش را دور می‌زند.
 
@@ -191,7 +191,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-workflow به نام Release اول تست را اجرا می‌کند، بعد شش بسته را می‌سازد و روی صفحهٔ Releases می‌گذارد. `sanj -version` همان تگ را چاپ می‌کند.
+workflow به نام Release اول تست را اجرا می‌کند، بعد شش بسته را می‌سازد و روی صفحهٔ Releases می‌گذارد. `vpnban -version` همان تگ را چاپ می‌کند.
 
 هر push و هر pull request هم با workflow به نام CI تست و کامپایل هر شش سیستم را می‌گیرد.
 
@@ -199,8 +199,8 @@ workflow به نام Release اول تست را اجرا می‌کند، بعد 
 
 ```bash
 go test ./...
-go build -o sanj .
-./sanj -version
+go build -o vpnban .
+./vpnban -version
 ```
 
 
@@ -226,7 +226,7 @@ go build -o sanj .
 - [ ] تست با دادهٔ نمونه برای تجزیهٔ پاسخ، خطا و پروتکل پشتیبانی‌نشده.
 - [ ] مستندات راه‌اندازی، محدودیت‌ها و نمونه‌ها به انگلیسی و فارسی.
 
-ارائه‌دهندهٔ دیگری مدنظر دارید؟ [درخواست اضافه‌کردن ارائه‌دهنده](https://github.com/WhoisGray/sanj/issues/new?title=Provider%20request%3A%20) را با نام سرویس، منبع مستند سرورها، پروتکل‌ها و نیاز به حساب ثبت کنید.
+ارائه‌دهندهٔ دیگری مدنظر دارید؟ [درخواست اضافه‌کردن ارائه‌دهنده](https://github.com/WhoisGray/vpnban/issues/new?title=Provider%20request%3A%20) را با نام سرویس، منبع مستند سرورها، پروتکل‌ها و نیاز به حساب ثبت کنید.
 
 ## مشارکت
 
@@ -236,10 +236,10 @@ go build -o sanj .
 2. مخزن را Fork کنید و یک شاخهٔ مشخص بسازید.
 3. برای ارائه‌دهندهٔ جدید، منبع سرورها، احراز هویت، محدودیت درخواست و پروتکل‌ها را مستند کنید. رمز، توکن و کلید خصوصی را در مخزن قرار ندهید.
 4. تست تجزیهٔ پاسخ با دادهٔ نمونه و حالت‌های خطا اضافه کنید. از کد بررسی فعلی استفاده کنید و پروتکل‌های پشتیبانی‌نشده را واضح مشخص کنید.
-5. هر دو README را به‌روز کنید، `go test ./...` و `go build -o sanj .` را اجرا کنید و Pull Request را با نمونهٔ خروجی و نتیجهٔ بررسی‌ها بفرستید.
+5. هر دو README را به‌روز کنید، `go test ./...` و `go build -o vpnban .` را اجرا کنید و Pull Request را با نمونهٔ خروجی و نتیجهٔ بررسی‌ها بفرستید.
 
 نقطه‌های شروع: [nord.go](nord.go) برای کشف و فیلتر، [main.go](main.go) برای خط فرمان و ورودی، و [ike.go](ike.go)، [wg.go](wg.go)، [ovpn.go](ovpn.go) برای بررسی پروتکل‌ها. رابط مشترک ارائه‌دهندگان هنوز جزو نقشهٔ راه است.
 
 ---
 
-اگر سنج برایتان مفید بود، با یک **ستاره ⭐** و اشتراک تجربه‌تان از پروژه حمایت کنید.
+اگر بان برایتان مفید بود، با یک **ستاره ⭐** و اشتراک تجربه‌تان از پروژه حمایت کنید.
