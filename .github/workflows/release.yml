@@ -108,7 +108,7 @@ jobs:
           if [ "${{ runner.os }}" = "macOS" ]; then
             zip -r "../../../vpnban-desktop_${version}_${{ matrix.pkg_name }}.zip" vpnban.app
           elif [ "${{ runner.os }}" = "Windows" ]; then
-            zip "../../../vpnban-desktop_${version}_${{ matrix.pkg_name }}.zip" vpnban.exe
+            7z a -tzip "../../../vpnban-desktop_${version}_${{ matrix.pkg_name }}.zip" vpnban.exe
           else
             tar -czf "../../../vpnban-desktop_${version}_${{ matrix.pkg_name }}.tar.gz" vpnban
           fi
