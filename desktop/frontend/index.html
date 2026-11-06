@@ -39,7 +39,26 @@
     .view-container.active-view {
       display: block;
     }
+
+    /* macOS Window Controls Inset Spacing & Wails Drag */
+    html.is-mac header {
+      padding-left: 82px !important;
+    }
+    header {
+      --wails-draggable: drag;
+      -webkit-app-region: drag;
+    }
+    header button, header input, header select, header a, header nav, .no-drag {
+      --wails-draggable: no-drag;
+      -webkit-app-region: no-drag;
+    }
   </style>
+
+  <script>
+    if (navigator.userAgent.includes('Mac') || (navigator.platform && navigator.platform.includes('Mac'))) {
+      document.documentElement.classList.add('is-mac');
+    }
+  </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script id="tailwind-config">
@@ -268,8 +287,9 @@
             <span class="font-mono text-xs font-semibold text-on-surface">Live Ingress &amp; Probe Telemetry</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <button onclick="clearTerminalLogs()" class="p-1 rounded text-outline hover:text-white hover:bg-white/10" title="Clear">
-              <span class="material-symbols-outlined text-[15px]">delete_sweep</span>
+            <button onclick="clearTerminalLogs()" class="px-2 py-0.5 rounded text-outline hover:text-white hover:bg-white/10 text-[11px] font-mono flex items-center gap-1 transition-colors" title="Clear terminal logs">
+              <span class="material-symbols-outlined text-[14px]">delete</span>
+              <span>Clear</span>
             </button>
             <button onclick="toggleTerminalPause()" id="btn-terminal-pause" class="p-1 rounded text-outline hover:text-white hover:bg-white/10" title="Pause / Resume">
               <span class="material-symbols-outlined text-[15px]">pause</span>
@@ -455,16 +475,28 @@
             <button onclick="setResultFilter('silent')" class="res-filter-btn px-2.5 py-1 rounded-lg text-xs font-mono text-outline hover:text-white">Silent</button>
           </div>
 
-          <!-- Export Buttons -->
+          <!-- Actions & Export Toolbar -->
           <div class="flex items-center gap-2">
+            <button onclick="clearResults()" class="px-3 py-1.5 rounded-xl bg-surface-container-high hover:bg-error/15 border border-white/10 hover:border-error/40 text-xs font-mono text-outline hover:text-error flex items-center gap-1.5 transition-all" title="Clear all discovered audit results">
+              <span class="material-symbols-outlined text-[15px] text-error">delete_sweep</span>
+              <span>Clear Results</span>
+            </button>
+
+            <div class="h-4 w-px bg-white/10 mx-0.5"></div>
+
             <button onclick="exportData('json')" class="px-3 py-1.5 rounded-xl bg-surface-container-high border border-white/10 hover:border-primary/50 text-xs font-mono text-on-surface flex items-center gap-1.5 transition-all">
-              <span class="material-symbols-outlined text-[15px] text-primary">data_object</span> JSON
+              <span class="material-symbols-outlined text-[15px] text-primary">data_object</span>
+              <span>JSON</span>
             </button>
-            <button onclick="exportData('csv')" class="px-3 py-1.5 rounded-xl bg-surface-container-high border border-white/10 hover:border-primary/50 text-xs font-mono text-on-surface flex items-center gap-1.5 transition-all">
-              <span class="material-symbols-outlined text-[15px] text-secondary">table_chart</span> CSV
+            <button onclick="exportData('csv')" class="px-3 py-1.5 rounded-xl bg-surface-container-high border border-white/10 hover:border-secondary/50 text-xs font-mono text-on-surface flex items-center gap-1.5 transition-all">
+              <span class="material-symbols-outlined text-[15px] text-secondary">table_chart</span>
+              <span>CSV</span>
             </button>
-            <button onclick="exportData('xlsx')" class="px-3 py-1.5 rounded-xl bg-surface-container-high border border-white/10 hover:border-primary/50 text-xs font-mono text-on-surface flex items-center gap-1.5 transition-all">
-              <span class="material-symbols-outlined text-[15px] text-tertiary">sheets</span> Excel (XLSX)
+            <button onclick="exportData('xlsx')" class="px-3 py-1.5 rounded-xl bg-surface-container-high border border-white/10 hover:border-[#107C41]/70 text-xs font-mono text-on-surface flex items-center gap-1.5 transition-all group" title="Export to Microsoft Excel Spreadsheet">
+              <svg class="w-3.5 h-3.5 text-[#107C41] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7l2.5-3.5L7 10h2l1.5 2.3 1.5-2.3h2l-2.5 3.5L16 17h-2l-2-2.8L10 17H9zm10-2h-3v-2h3v2zm0-4h-3V9h3v2z"/>
+              </svg>
+              <span>Excel (.xlsx)</span>
             </button>
           </div>
         </div>

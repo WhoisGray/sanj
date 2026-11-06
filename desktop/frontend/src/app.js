@@ -52,6 +52,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadProviders();
   await loadServers();
   renderMapNodes();
+
+  const hash = (window.location.hash || '').replace('#', '').trim();
+  if (['map', 'matrix', 'results', 'ingress'].includes(hash)) {
+    switchView(hash);
+  }
+
   logTerminal("vpnban CORE.V4 engine initialized. Ready for protocol auditing.");
 });
 
@@ -61,7 +67,15 @@ function setupNavigation() {
     btn.addEventListener('click', () => {
       const view = btn.getAttribute('data-view');
       switchView(view);
+      window.location.hash = view;
     });
+  });
+
+  window.addEventListener('hashchange', () => {
+    const h = (window.location.hash || '').replace('#', '').trim();
+    if (['map', 'matrix', 'results', 'ingress'].includes(h)) {
+      switchView(h);
+    }
   });
 }
 
@@ -166,6 +180,7 @@ function logTerminal(msg) {
 function clearTerminalLogs() {
   const feed = document.getElementById('terminal-feed');
   if (feed) feed.innerHTML = '';
+  showToast("Terminal logs cleared", "info");
 }
 
 function toggleTerminalPause() {
@@ -622,6 +637,21 @@ function upsertResult(res) {
     countBadge.textContent = state.results.length;
     countBadge.classList.remove('hidden');
   }
+}
+
+function clearResults() {
+  state.results = [];
+  updateMetrics();
+  renderResultsTable();
+
+  const countBadge = document.getElementById('results-count-badge');
+  if (countBadge) {
+    countBadge.textContent = '0';
+    countBadge.classList.add('hidden');
+  }
+
+  showToast("Audit results cleared", "info");
+  logTerminal("Cleared all audit results from workspace.");
 }
 
 function updateMetrics() {

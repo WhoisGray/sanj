@@ -56,7 +56,7 @@ jobs:
       matrix:
         include:
           - { os: macos-latest, platform: darwin/arm64 }
-          - { os: ubuntu-latest, platform: linux/amd64 }
+          - { os: ubuntu-22.04, platform: linux/amd64 }
           - { os: windows-latest, platform: windows/amd64 }
     steps:
       - uses: actions/checkout@v4
@@ -68,7 +68,9 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev || sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+          if ! sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev pkg-config; then
+            sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config
+          fi
 
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
@@ -77,4 +79,10 @@ jobs:
         shell: bash
         run: |
           cd desktop
-          wails build -platform ${{ matrix.platform }} -clean -v 1
+          BUILD_TAGS=""
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            if pkg-config --exists webkit2gtk-4.1 && ! pkg-config --exists webkit2gtk-4.0; then
+              BUILD_TAGS="-tags webkit2_41"
+            fi
+          fi
+          wails build -platform ${{ matrix.platform }} $BUILD_TAGS -clean -v 1
