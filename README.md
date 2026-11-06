@@ -19,7 +19,7 @@
 
 ---
 
-**vpnban** (بان, “the keeper”) is a Go command-line tool that keeps VPN server checks in mind. Discover servers through NordVPN's official API or bring your own host list, run protocol checks, and export the results as JSON, CSV, and Excel.
+**vpnban** (بان, “the keeper”) is a Go command-line tool that keeps VPN server checks in mind. Discover NordVPN servers through its official API, use gluetun-servers JSON for other providers, or bring your own host list. Export checks as JSON, CSV, and Excel.
 
 > Checks show what responds from your current network. They do not guarantee successful VPN login, a working tunnel, or browsing performance. Only scan servers you have permission to check.
 
@@ -30,7 +30,7 @@
 - **Bring your own list:** use domain/IPv4 text files, supported JSON catalogs, or previous results.
 - **Keep useful reports:** JSON for automation, CSV for analysis, XLSX for sharing.
 - **Run across platforms:** macOS, Linux, and Windows releases for amd64 and arm64.
-- **Reuse discovery:** six-hour NordVPN cache with an explicit refresh option.
+- **Reuse discovery:** separate six-hour caches for NordVPN and each gluetun-servers provider, with an explicit refresh option.
 
 ## Quick start
 
@@ -108,6 +108,21 @@ vpnban -file vpnban-results.json -phase 2     # Probe saved addresses
 
 Custom-file mode uses its own discovery and probing flow; the NordVPN `-proto` selector does not configure it. See [main.go](main.go) for supported JSON catalog and saved-result formats.
 
+### Other providers via gluetun-servers
+
+```bash
+vpnban -provider mullvad -proto wire -country se -limit 40
+vpnban -provider protonvpn -proto openvpn -country Germany -limit 20
+vpnban -provider "vpn unlimited" -proto ikev2 -limit 10
+vpnban -provider surfshark -proto wire,openvpn -refresh
+```
+
+Supported names: `airvpn`, `cyberghost`, `expressvpn`, `fastestvpn`, `giganews`, `hidemyass`, `ipvanish`, `ivpn`, `mullvad`, `ovpn`, `privado`, `private internet access`, `privatevpn`, `protonvpn`, `purevpn`, `slickvpn`, `surfshark`, `torguard`, `vpn unlimited`, `vpnsecure`, `vyprvpn`, `windscribe`.
+
+This mode downloads the matching JSON from [gluetun-servers](https://github.com/qdm12/gluetun-servers/tree/main/pkg/servers). `-country` accepts a country name or ISO two-letter code where the catalog includes a country. `-limit` caps the number of IP endpoints probed. `-proto` uses the JSON's `vpn`, `tcp`, `udp`, and `wgpubkey` fields to select supported OpenVPN and WireGuard checks. IKEv2 is a discovery probe because these JSON files do not declare IKEv2 support. For IKEv2, the Remote ID defaults to the listed hostname; **VPN Unlimited always uses `ironnodes.com`** even though its gateway hostnames end in `vpnunlimitedapp.com`. Its transport hostname is otherwise used normally. An explicit `-ike-id` can override the default for other providers.
+
+Provider reports use `<provider>-results.json`, `.csv`, and `.xlsx` by default. Each provider has a separate cache under `~/.cache/nordike/gluetun`, using `-ttl` and `-refresh` without changing NordVPN's cache.
+
 ### Read the results
 
 | Value | Meaning |
@@ -131,13 +146,14 @@ In custom-file discovery, if DNS returns only private addresses, vpnban stops by
 | Flag | Default | Purpose |
 | --- | --- | --- |
 | `-nord` | `false` | Discover and check NordVPN servers |
-| `-proto` | `ikev2` | NordVPN protocol selection |
+| `-provider` | — | Discover another provider from gluetun-servers JSON |
+| `-proto` | `ikev2` | NordVPN or provider protocol selection |
 | `-country` | All | Comma-separated country codes or names |
-| `-limit` | `0` | NordVPN server limit; zero means all, lowest load first |
+| `-limit` | `0` | Server or endpoint limit; zero means all (NordVPN: lowest load first) |
 | `-load` | `100` | Maximum NordVPN server load |
 | `-offline` | `false` | Include NordVPN servers not marked online |
-| `-refresh` | `false` | Download the NordVPN catalog again |
-| `-ttl` | `6h` | NordVPN cache lifetime |
+| `-refresh` | `false` | Download the selected provider catalog again |
+| `-ttl` | `6h` | Selected provider cache lifetime |
 | `-c` | `80`; NordVPN: `32` | Concurrent workers |
 | `-ike-timeout` | `1s` | IKEv2 timeout |
 | `-tcp-timeout` | `1200ms`; NordVPN: `1s` | TCP timeout |
@@ -157,19 +173,11 @@ To update, run `vpnban -update`. Older binaries such as v1.0.1 do not recognize 
 
 ## Provider roadmap
 
-**NordVPN is the only built-in discovery provider today.** Custom lists are supported separately. The items below are open contribution ideas, not implemented integrations or promised releases.
+NordVPN uses its official API. The other providers above use gluetun-servers JSON. Custom lists are supported separately.
 
 - [x] NordVPN — official API discovery, filters, cache, and protocol checks.
 - [x] Custom domain / IPv4 lists and supported JSON input.
-- [ ] VPN Unlimited — investigate an official or documented server source and supported protocols.
-- [ ] Windscribe — investigate server discovery, account requirements, and protocol metadata.
-- [ ] VyprVPN — investigate server discovery and protocol coverage.
-- [ ] Proton VPN — investigate a documented catalog or configuration import.
-- [ ] Mullvad — investigate relay discovery and protocol metadata.
-- [ ] Surfshark — investigate a documented server source or configuration import.
-- [ ] Shared provider interface — separate discovery, metadata, cache, and probing.
-- [ ] Provider fixtures and tests — cover parsing, failures, and unsupported protocols.
-- [ ] Provider documentation — setup, limitations, examples, and English/Persian updates.
+- [x] 22 other providers — gluetun-servers JSON discovery, filters, separate caches, and protocol checks.
 
 Have another provider in mind? [Propose an integration](https://github.com/WhoisGray/vpnban/issues/new?title=Provider%20request%3A%20) with the provider name, a documented server source, available protocols, and any account requirements.
 

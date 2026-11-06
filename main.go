@@ -78,6 +78,7 @@ func main() {
 	csvOut := flag.String("csv", "vpnban-results.csv", "CSV output path")
 	allowPoison := flag.Bool("allow-poisoned", false, "keep going even when DNS returns a private address such as 10.10")
 	nordMode := flag.Bool("nord", false, "Fetch the NordVPN server list and probe the protocols in -proto")
+	provider := flag.String("provider", "", "Fetch a gluetun-servers provider JSON and probe its servers")
 	proto := flag.String("proto", "ikev2", "ikev2 (default), wire, openvpn, a comma list such as ikev2,wire, or full")
 	refresh := flag.Bool("refresh", false, "Ignore the NordVPN cache and download again")
 	ttl := flag.Duration("ttl", 6*time.Hour, "NordVPN cache lifetime")
@@ -111,6 +112,21 @@ func main() {
 		}
 		flag.Visit(func(f *flag.Flag) { opts.seen(f.Name) })
 		if err := runNord(opts); err != nil {
+			fmt.Fprintln(os.Stderr, "❌", err)
+			os.Exit(1)
+		}
+		return
+	}
+	if *provider != "" {
+		if *file != "" {
+			fmt.Fprintln(os.Stderr, "❌ -provider and -file cannot be used together")
+			os.Exit(2)
+		}
+		o := gluetunOpts{name: *provider, refresh: *refresh, ttl: *ttl, limit: *limitN, country: *country,
+			proto: *proto, conc: *conc, ikeTimeout: *ikeTimeout, tcpTimeout: *tcpTimeout,
+			ikeUser: *ikeUser, ikeID: *ikeID, jsonPath: *jsonOut, csvPath: *csvOut, xlsxPath: *xlsxOut}
+		flag.Visit(func(f *flag.Flag) { o.seen(f.Name) })
+		if err := runGluetun(o); err != nil {
 			fmt.Fprintln(os.Stderr, "❌", err)
 			os.Exit(1)
 		}
@@ -208,6 +224,8 @@ func usage() {
 	fmt.Fprintln(os.Stderr, "  vpnban -nord -proto ikev2,wire")
 	fmt.Fprintln(os.Stderr, "  vpnban -nord -proto full")
 	fmt.Fprintln(os.Stderr, "  vpnban -nord -refresh -c 256 -country se -limit 40")
+	fmt.Fprintln(os.Stderr, "  vpnban -provider mullvad -proto wire -country se -limit 40")
+	fmt.Fprintln(os.Stderr, "  vpnban -provider 'vpn unlimited' -proto ikev2")
 	fmt.Fprintln(os.Stderr, "  vpnban -file servers.json")
 	fmt.Fprintln(os.Stderr, "  vpnban -file server.txt          one domain or IPv4 per line")
 	fmt.Fprintln(os.Stderr, "  vpnban -update                   install the latest release")
